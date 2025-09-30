@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SharePoint Data Fetcher Functions</title>
+    
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+    
+    <script type="text/javascript">
+        // The initialize function must be run each time a new page is loaded
+        Office.initialize = function (reason) {
+            // If needed, Office.js is ready to be called
+        };
+
+        // Add any initialization logic here
+        function showNotification() {
+            // This function can be called from the ribbon button if needed
+            console.log("Function file loaded");
+        }
+    </script>
+</head>
+
+<body>
+    <!-- This file is used for function commands executed from the ribbon -->
+    <!-- Keep this file minimal as it runs in the background -->
+</body>
+
+</html>

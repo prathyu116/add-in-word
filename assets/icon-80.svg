@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    <rect width="80" height="80" rx="10" fill="url(#gradient)"/>
+    <g transform="translate(40, 40)">
+        <!-- SharePoint icon representation -->
+        <circle cx="0" cy="-13.333333333333334" r="6.666666666666667" fill="white" opacity="0.9"/>
+        <circle cx="-13.333333333333334" cy="10" r="6.666666666666667" fill="white" opacity="0.9"/>
+        <circle cx="13.333333333333334" cy="10" r="6.666666666666667" fill="white" opacity="0.9"/>
+        <path d="M 0,-13.333333333333334 L -13.333333333333334,10 L 13.333333333333334,10 Z" 
+              stroke="white" stroke-width="2.5" fill="none" opacity="0.7"/>
+    </g>
+    <text x="40" y="68" font-family="Arial, sans-serif" font-size="20" 
+          font-weight="bold" fill="white" text-anchor="middle">SP</text>
+</svg>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SharePoint Data Fetcher</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+    
+    <!-- Microsoft Authentication Library (MSAL) -->
+    <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.32.2/js/msal-browser.min.js"></script>
+    
+    <!-- Microsoft Graph Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client@3.0.7/lib/graph-js-sdk.js"></script>
+
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="styles/taskpane.css">
+</head>
+
+<body>
+    <div id="container">
+        <header>
+            <h1>SharePoint Data Fetcher</h1>
+        </header>
+        
+        <main>
+            <div class="section">
+                <h2>Authentication</h2>
+                <button id="signInButton" class="ms-Button ms-Button--primary">
+                    <span class="ms-Button-label">Sign In to SharePoint</span>
+                </button>
+                <button id="signOutButton" class="ms-Button" style="display:none;">
+                    <span class="ms-Button-label">Sign Out</span>
+                </button>
+                <div id="userInfo" class="user-info"></div>
+            </div>
+
+            <div class="section">
+                <h2>SharePoint Configuration</h2>
+                <div class="input-group">
+                    <label for="siteUrl">SharePoint Site URL:</label>
+                    <input type="text" id="siteUrl" placeholder="https://yourcompany.sharepoint.com/sites/yoursite" />
+                </div>
+                <div class="input-group">
+                    <label for="listName">List/Library Name:</label>
+                    <input type="text" id="listName" placeholder="Documents or Your List Name" />
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Fetch Data</h2>
+                <button id="fetchDataButton" class="ms-Button ms-Button--primary" disabled>
+                    <span class="ms-Button-label">Fetch Data from SharePoint</span>
+                </button>
+                <div id="loadingIndicator" class="loading" style="display:none;">
+                    <div class="spinner"></div>
+                    <span>Fetching data...</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Data Preview</h2>
+                <div id="dataPreview" class="data-preview">
+                    <p class="placeholder">No data fetched yet. Sign in and click "Fetch Data" to retrieve SharePoint data.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <button id="insertDataButton" class="ms-Button ms-Button--primary" disabled>
+                    <span class="ms-Button-label">Insert Data into Document</span>
+                </button>
+            </div>
+
+            <div id="errorMessage" class="error-message" style="display:none;"></div>
+            <div id="successMessage" class="success-message" style="display:none;"></div>
+        </main>
+    </div>
+
+    <!-- Local JavaScript -->
+    <script src="scripts/taskpane.js"></script>
+</body>
+
+</html>

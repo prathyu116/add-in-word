@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add-in Test Page</title>
+    
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Word Add-in Test Page</h1>
+        
+        <div id="status" class="status info">
+            Initializing Office.js...
+        </div>
+        
+        <div id="environment"></div>
+        
+        <div id="tests"></div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="testOfficeAPI()">Test Office API</button>
+            <button onclick="testWordAPI()">Test Word API</button>
+            <button onclick="testAuthentication()">Test Authentication</button>
+            <button onclick="window.location.href='taskpane.html'">Go to Main Add-in</button>
+        </div>
+        
+        <div id="results" style="margin-top: 20px;"></div>
+    </div>
+    
+    <script>
+        let isOfficeInitialized = false;
+        
+        // Office initialization
+        Office.onReady((info) => {
+            isOfficeInitialized = true;
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'status success';
+            statusDiv.innerHTML = '✅ Office.js initialized successfully!';
+            
+            const envDiv = document.getElementById('environment');
+            envDiv.innerHTML = `
+                <div class="status info">
+                    <h3>Environment Information:</h3>
+                    <ul>
+                        <li><strong>Host:</strong> ${info.host}</li>
+                        <li><strong>Platform:</strong> ${info.platform}</li>
+                        <li><strong>Office.js Version:</strong> ${Office.context ? Office.context.diagnostics.version : 'N/A'}</li>
+                        <li><strong>Location:</strong> ${window.location.href}</li>
+                        <li><strong>Protocol:</strong> ${window.location.protocol}</li>
+                        <li><strong>User Agent:</strong> ${navigator.userAgent}</li>
+                    </ul>
+                </div>
+            `;
+            
+            runDiagnostics();
+        });
+        
+        // Error handler
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'status error';
+            statusDiv.innerHTML = `❌ Error: ${msg}<br>Line: ${lineNo}<br>URL: ${url}`;
+            return false;
+        };
+        
+        function runDiagnostics() {
+            const tests = document.getElementById('tests');
+            let html = '<div class="status info"><h3>Diagnostic Tests:</h3><ul>';
+            
+            // Test 1: Check if running in Office context
+            if (typeof Office !== 'undefined') {
+                html += '<li>✅ Office namespace is available</li>';
+            } else {
+                html += '<li>❌ Office namespace is NOT available</li>';
+            }
+            
+            // Test 2: Check if Word namespace is available
+            if (typeof Word !== 'undefined') {
+                html += '<li>✅ Word namespace is available</li>';
+            } else {
+                html += '<li>❌ Word namespace is NOT available</li>';
+            }
+            
+            // Test 3: Check HTTPS
+            if (window.location.protocol === 'https:') {
+                html += '<li>✅ Running on HTTPS</li>';
+            } else {
+                html += '<li>⚠️ NOT running on HTTPS (required for production)</li>';
+            }
+            
+            // Test 4: Check Office context
+            if (Office.context) {
+                html += '<li>✅ Office context is available</li>';
+                html += `<li>Platform: ${Office.context.platform}</li>`;
+            } else {
+                html += '<li>⚠️ Office context is not yet available</li>';
+            }
+            
+            html += '</ul></div>';
+            tests.innerHTML = html;
+        }
+        
+        function testOfficeAPI() {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!isOfficeInitialized) {
+                resultsDiv.innerHTML = '<div class="status error">Office.js is not initialized yet!</div>';
+                return;
+            }
+            
+            try {
+                const context = Office.context;
+                resultsDiv.innerHTML = `
+                    <div class="status success">
+                        <h3>Office API Test Results:</h3>
+                        <pre>${JSON.stringify({
+                            contentLanguage: context.contentLanguage,
+                            displayLanguage: context.displayLanguage,
+                            platform: context.platform,
+                            diagnostics: context.diagnostics
+                        }, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="status error">Error testing Office API: ${error.message}</div>`;
+            }
+        }
+        
+        function testWordAPI() {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!isOfficeInitialized) {
+                resultsDiv.innerHTML = '<div class="status error">Office.js is not initialized yet!</div>';
+                return;
+            }
+            
+            Word.run(async (context) => {
+                try {
+                    // Try to get document properties
+                    const properties = context.document.properties;
+                    properties.load("title, subject, author");
+                    
+                    await context.sync();
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="status success">
+                            <h3>Word API Test Results:</h3>
+                            <p>✅ Successfully connected to Word API</p>
+                            <p>Document Title: ${properties.title || '(empty)'}</p>
+                            <p>Document Author: ${properties.author || '(empty)'}</p>
+                        </div>
+                    `;
+                } catch (error) {
+                    resultsDiv.innerHTML = `<div class="status error">Error testing Word API: ${error.message}</div>`;
+                }
+            });
+        }
+        
+        function testAuthentication() {
+            const resultsDiv = document.getElementById('results');
+            
+            // Check if MSAL is available
+            if (typeof msal === 'undefined') {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <h3>Authentication Test:</h3>
+                        <p>❌ MSAL library is not loaded</p>
+                        <p>This test page doesn't include MSAL. Use the main add-in page to test authentication.</p>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="status info">
+                        <h3>Authentication Test:</h3>
+                        <p>MSAL library is loaded. Use the main add-in page to test full authentication.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-run diagnostics after 2 seconds if Office.js doesn't initialize
+        setTimeout(() => {
+            if (!isOfficeInitialized) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '⚠️ Office.js did not initialize. This might be normal if not running inside Office.';
+                runDiagnostics();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
