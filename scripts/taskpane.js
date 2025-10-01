@@ -1,8 +1,8 @@
 // MSAL configuration
 const msalConfig = {
     auth: {
-        clientId: "02fb26ab-51b3-4b53-ad60-1ad1270db6dd", // Replace with your Azure AD app client ID
-        authority: "https://login.microsoftonline.com/6fa67388-c042-4efc-b4d9-e6880e51284f", // Replace with your tenant ID
+        clientId: "6677d310-6f8a-48d7-a24d-f9a8a56ce49b",
+        authority: "https://login.microsoftonline.com/15dc6d2d-a6f3-4081-ad30-aa3d729969ba",
         redirectUri: "https://localhost:3000/taskpane.html"
     },
     cache: {
@@ -123,8 +123,11 @@ async function fetchSharePointData() {
         showLoading(true);
         clearMessages();
         
-        const siteUrl = document.getElementById("siteUrl").value;
-        const listName = document.getElementById("listName").value;
+        const configResponse = await fetch('/config');
+        const config = await configResponse.json();
+        
+        const siteUrl = config.sharePointSiteUrl;
+        const listName = config.sharePointListName;
         
         if (!siteUrl || !listName) {
             showError("Please enter both SharePoint site URL and list name.");

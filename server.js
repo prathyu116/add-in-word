@@ -28,6 +28,14 @@ app.get('/', (req, res) => {
     res.send('Word Add-in Server is running!');
 });
 
+// Configuration endpoint for SharePoint settings
+app.get('/config', (req, res) => {
+    res.json({
+        sharePointSiteUrl: process.env.SHAREPOINT_SITE_URL || '',
+        sharePointListName: process.env.SHAREPOINT_LIST_NAME || ''
+    });
+});
+
 // Start server with HTTPS for development (Office Add-ins require HTTPS)
 const https = require('https');
 const fs = require('fs');
