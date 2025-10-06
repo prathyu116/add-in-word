@@ -15,7 +15,7 @@
   <ProviderName>Contoso</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <!-- The display name of your add-in. Used on the store and various places of the Office UI such as the add-ins dialog. -->
-  <DisplayName DefaultValue="SharePoint Data Fetcher" />
+  <DisplayName DefaultValue="SharePoint Data Fetcher-Test" />
   <Description DefaultValue="Fetch data from SharePoint and insert it into Word documents"/>
 
   <!-- Icon for your add-in. Used on installation screens and the add-ins dialog. -->
@@ -43,6 +43,18 @@
   <!-- End TaskPane Mode integration.  -->
 
   <Permissions>ReadWriteDocument</Permissions>
+
+  <!-- Single Sign-On (SSO) Configuration -->
+  <WebApplicationInfo>
+    <Id>6677d310-6f8a-48d7-a24d-f9a8a56ce49b</Id>
+    <Resource>api://localhost:3000/6677d310-6f8a-48d7-a24d-f9a8a56ce49b</Resource>
+    <Scopes>
+      <Scope>https://graph.microsoft.com/Sites.Read.All</Scope>
+      <Scope>https://graph.microsoft.com/Sites.ReadWrite.All</Scope>
+      <Scope>https://graph.microsoft.com/Files.Read.All</Scope>
+      <Scope>https://graph.microsoft.com/User.Read</Scope>
+    </Scopes>
+  </WebApplicationInfo>
 
   <!-- Begin Add-in Commands Mode integration. -->
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">

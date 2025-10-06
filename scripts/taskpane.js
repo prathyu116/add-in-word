@@ -23,96 +23,87 @@ let currentUser = null;
 Office.onReady((info) => {
     if (info.host === Office.HostType.Word) {
         // Initialize UI event handlers
-        document.getElementById("signInButton").onclick = signIn;
-        document.getElementById("signOutButton").onclick = signOut;
         document.getElementById("fetchDataButton").onclick = fetchSharePointData;
         document.getElementById("insertDataButton").onclick = insertDataIntoDocument;
         
         // Load saved configuration
         loadConfiguration();
         
-        // Check if user is already signed in
-        checkAuthStatus();
+        console.log("Add-in ready - authentication will happen automatically when fetching data");
     }
 });
 
-// Check authentication status
-async function checkAuthStatus() {
-    try {
-        const accounts = msalInstance.getAllAccounts();
-        if (accounts.length > 0) {
-            currentUser = accounts[0];
-            updateUIForSignedInUser();
-            await getAccessToken();
-        }
-    } catch (error) {
-        console.error("Error checking auth status:", error);
-    }
-}
 
-// Sign in function
-async function signIn() {
+// Get user info from Microsoft Graph (for SSO scenarios)
+async function getUserInfo() {
     try {
-        const loginRequest = {
-            scopes: ["Sites.Read.All", "Sites.ReadWrite.All", "Files.Read.All", "User.Read"]
+        const graphClient = MicrosoftGraph.Client.init({
+            authProvider: (done) => {
+                done(null, accessToken);
+            }
+        });
+        
+        const userInfo = await graphClient.api('/me').get();
+        
+        // Create a user object similar to MSAL format
+        currentUser = {
+            username: userInfo.userPrincipalName || userInfo.mail,
+            name: userInfo.displayName,
+            id: userInfo.id
         };
         
-        const loginResponse = await msalInstance.loginPopup(loginRequest);
-        currentUser = loginResponse.account;
-        accessToken = loginResponse.accessToken;
-        
-        updateUIForSignedInUser();
-        showSuccess("Successfully signed in!");
-        
     } catch (error) {
-        console.error("Login failed:", error);
-        showError("Failed to sign in: " + error.message);
-    }
-}
-
-// Sign out function
-async function signOut() {
-    try {
-        const logoutRequest = {
-            account: currentUser
+        console.error("Failed to get user info:", error);
+        // Set a default user object if Graph call fails
+        currentUser = {
+            username: "Current User",
+            name: "Current User"
         };
-        await msalInstance.logoutPopup(logoutRequest);
-        
-        currentUser = null;
-        accessToken = null;
-        sharePointData = [];
-        
-        updateUIForSignedOutUser();
-        showSuccess("Successfully signed out!");
-        
-    } catch (error) {
-        console.error("Logout failed:", error);
-        showError("Failed to sign out: " + error.message);
     }
 }
 
-// Get access token
+
+// Get access token using Office SSO first, fallback to MSAL
 async function getAccessToken() {
     try {
+        // Try Office SSO first (reuses Word's authentication)
+        console.log("Attempting Office SSO authentication...");
+        const ssoToken = await Office.auth.getAccessToken({
+            allowSignInPrompt: true,
+            allowConsentPrompt: true,
+            forMSGraphAccess: true
+        });
+        
+        console.log("Office SSO successful");
+        accessToken = ssoToken;
+        return accessToken;
+        
+    } catch (ssoError) {
+        console.log("SSO failed, falling back to MSAL:", ssoError);
+        
+        // Define tokenRequest outside the nested try blocks
         const tokenRequest = {
             scopes: ["Sites.Read.All", "Sites.ReadWrite.All", "Files.Read.All"],
             account: currentUser
         };
         
-        const tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
-        accessToken = tokenResponse.accessToken;
-        return accessToken;
-        
-    } catch (error) {
-        console.error("Token acquisition failed:", error);
-        // Try to acquire token interactively
+        // Fallback to MSAL authentication
         try {
-            const tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
+            const tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
             accessToken = tokenResponse.accessToken;
             return accessToken;
-        } catch (popupError) {
-            console.error("Interactive token acquisition failed:", popupError);
-            throw popupError;
+            
+        } catch (error) {
+            console.error("Token acquisition failed:", error);
+            // Try to acquire token interactively
+            try {
+                const tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
+                accessToken = tokenResponse.accessToken;
+                return accessToken;
+            } catch (popupError) {
+                console.error("Interactive token acquisition failed:", popupError);
+                throw popupError;
+            }
         }
     }
 }
@@ -123,6 +114,15 @@ async function fetchSharePointData() {
         showLoading(true);
         clearMessages();
         
+        // Authenticate automatically in background
+        console.log("Authenticating automatically...");
+        await getAccessToken();
+        
+        // Get user info if not already available
+        if (!currentUser) {
+            await getUserInfo();
+        }
+        
         const configResponse = await fetch('/config');
         const config = await configResponse.json();
         
@@ -130,16 +130,13 @@ async function fetchSharePointData() {
         const listName = config.sharePointListName;
         
         if (!siteUrl || !listName) {
-            showError("Please enter both SharePoint site URL and list name.");
+            showError("Please configure SharePoint site URL and list name in environment variables.");
             showLoading(false);
             return;
         }
         
         // Save configuration
         saveConfiguration(siteUrl, listName);
-        
-        // Get fresh access token
-        await getAccessToken();
         
         // Parse site URL to get site ID
         const siteId = await getSiteId(siteUrl);
@@ -346,27 +343,6 @@ async function insertDataIntoDocument() {
     }
 }
 
-// UI update functions
-function updateUIForSignedInUser() {
-    document.getElementById("signInButton").style.display = "none";
-    document.getElementById("signOutButton").style.display = "inline-block";
-    document.getElementById("fetchDataButton").disabled = false;
-    
-    if (currentUser) {
-        document.getElementById("userInfo").innerHTML = 
-            `<p>Signed in as: <strong>${currentUser.username}</strong></p>`;
-    }
-}
-
-function updateUIForSignedOutUser() {
-    document.getElementById("signInButton").style.display = "inline-block";
-    document.getElementById("signOutButton").style.display = "none";
-    document.getElementById("fetchDataButton").disabled = true;
-    document.getElementById("insertDataButton").disabled = true;
-    document.getElementById("userInfo").innerHTML = "";
-    document.getElementById("dataPreview").innerHTML = 
-        '<p class="placeholder">No data fetched yet. Sign in and click "Fetch Data" to retrieve SharePoint data.</p>';
-}
 
 // Configuration management
 function saveConfiguration(siteUrl, listName) {
